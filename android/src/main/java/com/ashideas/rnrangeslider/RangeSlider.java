@@ -359,10 +359,11 @@ public class RangeSlider extends View {
                 if (onSliderTouchListener != null) {
                     onSliderTouchListener.onTouchEnd();
                 }
+                onValueChangeListener.onValueChanged(this.lowValue, this.highValue, true);
                 break;
         }
         ViewCompat.postInvalidateOnAnimation(this);
-        checkAndFireValueChangeEvent(oldLow, oldHigh, true);
+//        checkAndFireValueChangeEvent(oldLow, oldHigh, true);
         return true;
     }
 
@@ -465,10 +466,19 @@ public class RangeSlider extends View {
             return;
         }
 
-        String text = formatLabelText(activeThumb == THUMB_LOW ? lowValue : highValue);
+        String textLow = formatLabelText(lowValue);
+        String textHigh = formatLabelText(highValue);
+
+        renderLabel(textLow,labelHeight,lowX,width,canvas,labelTextHeight);
+        renderLabel(textHigh,labelHeight,highX,width,canvas,labelTextHeight);
+       
+    }
+
+    private void renderLabel(String text, float labelHeight, float cx, float width, Canvas canvas, float labelTextHeight){
+
         float labelTextWidth = labelTextPaint.measureText(text);
         float labelWidth = labelTextWidth + 2 * labelPadding + 2 * labelBorderWidth;
-        float cx = activeThumb == THUMB_LOW ? lowX : highX;
+       
 
         if (labelWidth < labelTailHeight / SQRT_3_2) {
             labelWidth = labelTailHeight / SQRT_3_2;

@@ -373,9 +373,9 @@ NSDateFormatter *dateTimeFormatter;
     UIColor *selectionColor = [RangeSlider colorWithHexString:_selectionColor];
     UIColor *thumbColor = [RangeSlider colorWithHexString:_thumbColor];
     UIColor *thumbBorderColor = [RangeSlider colorWithHexString:_thumbBorderColor];
-    UIColor *labelBackgroundColor = [RangeSlider colorWithHexString:_labelBackgroundColor];
+    
     UIColor *labelTextColor = [RangeSlider colorWithHexString:_labelTextColor];
-    UIColor *labelBorderColor = [RangeSlider colorWithHexString:_labelBorderColor];
+    
 
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineCap(context, kCGLineCapRound);
@@ -448,16 +448,42 @@ NSDateFormatter *dateTimeFormatter;
     if ([_labelStyle isEqualToString:NONE]) {
         return;
     }
+    NSString *textLow = [self formatLabelText:_lowValue];
+    NSString *textHigh = [self formatLabelText:_highValue];
+    CGFloat cxLow = lowX;
+     CGFloat cxHigh =  highX;
+    
+    [self renderLabel:cxLow text:textLow width:width];
+    [self renderLabel:cxHigh text:textHigh width:width];
 
-    NSString *text = [self formatLabelText:_activeThumb == THUMB_LOW ? _lowValue : _highValue];
+    
+    //CGContextShowTextAtPoint(context, cx - labelTextWidth / 2 + overflowOffset, _labelBorderWidth + _labelPadding, [text UTF8String], text.length);
+}
+- (void)renderLabel:(CGFloat)cx text:(NSString*)text width:(CGFloat)width{
+    UIColor *labelBackgroundColor = [RangeSlider colorWithHexString:_labelBackgroundColor];
+    UIColor *labelBorderColor = [RangeSlider colorWithHexString:_labelBorderColor];
+    UIColor *labelTextColor = [RangeSlider colorWithHexString:_labelTextColor];
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+       CGContextSetLineCap(context, kCGLineCapRound);
+       CGContextSetFontSize(context, _textSize);
+    
+    NSDictionary<NSAttributedStringKey, id> *labelTextAttributes = @{NSForegroundColorAttributeName: labelTextColor, NSFontAttributeName: labelFont};
+     CGRect textRect = [@"0" boundingRectWithSize:CGSizeMake(500, 500) options:NSStringDrawingUsesLineFragmentOrigin attributes:labelTextAttributes context:nil];
+    
+//    NSString *text = [self formatLabelText:_activeThumb == THUMB_LOW ? _lowValue : _highValue];
     textRect = [text boundingRectWithSize:CGSizeMake(500, 500) options:NSStringDrawingUsesLineFragmentOrigin attributes:labelTextAttributes context:nil];
     CGFloat labelTextWidth = textRect.size.width;
     CGFloat labelWidth = labelTextWidth + 2 * _labelPadding + 2 * _labelBorderWidth;
-    CGFloat cx = _activeThumb == THUMB_LOW ? lowX : highX;
+    
+
 
     if (labelWidth < _labelTailHeight / SQRT_3_2) {
         labelWidth = _labelTailHeight / SQRT_3_2;
     }
+    CGFloat labelTextHeight = textRect.size.height;
+    BOOL isNoneStyle = [_labelStyle isEqualToString: NONE];
+    CGFloat labelHeight = isNoneStyle ? 0 : 2 * _labelBorderWidth + _labelTailHeight + labelTextHeight + 2 * _labelPadding;
 
     CGFloat y = labelHeight;
 
@@ -495,7 +521,7 @@ NSDateFormatter *dateTimeFormatter;
     CGContextSetFontSize(context, _textSize);
     [text drawAtPoint:CGPointMake(cx - labelTextWidth / 2 + overflowOffset, _labelBorderWidth + _labelPadding)
        withAttributes:labelTextAttributes];
-    //CGContextShowTextAtPoint(context, cx - labelTextWidth / 2 + overflowOffset, _labelBorderWidth + _labelPadding, [text UTF8String], text.length);
+
 }
 
 - (void)preparePath:(CGContextRef)context x:(CGFloat)x y:(CGFloat)y left:(CGFloat)left top:(CGFloat)top right:(CGFloat)right bottom:(CGFloat)bottom tailHeight:(CGFloat)tailHeight {
@@ -517,6 +543,7 @@ NSDateFormatter *dateTimeFormatter;
     CGContextAddLineToPoint(context, x, y);
     CGContextClosePath(context);
 }
+
 
 - (NSString *)formatLabelText:(long long)value {
     if ([_valueType isEqualToString:TYPE_NUMBER]) {
